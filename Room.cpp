@@ -1,4 +1,6 @@
 #include "Room.h"
+#include "EnemyFactory.h"
+#include <iostream>
 
 Room::Room()
 {
@@ -8,6 +10,8 @@ Room::Room()
 	west = NULL;
 	room_x = NULL;
 	room_y = NULL;
+	vector<Event*> roomEvents;
+	vector<Character*> participants;
 }
 
 Room::Room(int n, int s, int e, int w, int x, int y)
@@ -46,6 +50,12 @@ Room::Room(int n, int s, int e, int w, int x, int y)
 	}
 	room_x = x;
 	room_y = y;
+
+	//Adds random number of enemies (between 1 and 3) of random type with random stats to participants vector
+	int numEnemies = rand() % 3 + 1;
+	for (int i = 0; i < numEnemies; i++) {
+		participants.push_back(EnemyFactory::getInstance()->makeEnemy());
+	}
 }
 
 bool Room::getNorth()

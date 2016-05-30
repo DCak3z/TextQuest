@@ -16,6 +16,8 @@ private:
 	bool west;
 	int room_x;
 	int room_y;
+	vector<Event*> roomEvents;
+	vector<Character*> participants;
 public:
 	Room();
 	Room(int north, int south, int east, int west, int x, int y);

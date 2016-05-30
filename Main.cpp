@@ -25,10 +25,11 @@ Player* player;
 vector<Vocation*> vocations;
 vector<Event*> events;
 vector<Room*> rooms;
+bool fow;
 
-const int mapx = 21, mapy = 21;
-int playerx = 1, playery = 1;
-char gameMap[mapx][mapy] = {
+const int mapy = 21, mapx = 21;
+int playery = (rand() % 9) * 2 + 1, playerx = (rand() % 9) * 2 + 1;
+char gameMap[mapy][mapx] = {
 	{ '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+' },
 	{ '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|' },
 	{ '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+' },
@@ -50,6 +51,29 @@ char gameMap[mapx][mapy] = {
 	{ '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+' },
 	{ '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|', ' ', '|' },
 	{ '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+' },
+};
+char fogMap[mapy][mapx] = {
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
+	{ '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*' },
 };
 
 //------------------------------------------------
@@ -128,6 +152,26 @@ void startGame() {
 
 	continueChoice = 'x';
 
+	while (continueChoice != 'y' && continueChoice != 'n')
+	{
+		cout << "Would you like to turn off fog of war? (y/n) ";
+		cin >> continueChoice;
+
+		if (continueChoice == 'y')
+		{
+			fow = false;
+		}
+		else if (continueChoice == 'n')
+		{
+			fow = true;
+		}
+	}
+
+	//Ignores any extra input (ensures extra input is not accidently read in by future 'cin' or 'getline' commands
+	cin.ignore();
+
+	continueChoice = 'x';
+
 	while (continueChoice != 'y' && continueChoice != 'n') {
 		cout << "Would you like to begin? (y/n) ";
 		cin >> continueChoice;
@@ -136,10 +180,11 @@ void startGame() {
 	//Ignores any extra input (ensures extra input is not accidently read in by future 'cin' or 'getline' commands
 	cin.ignore();
 
+	//Generates the map of rooms
+	generateMap();
+
 	//Starts main game loop
 	if (continueChoice == 'y') {
-		generateMap();
-		printMap();
 		gameLoop();
 	}
 
@@ -157,6 +202,55 @@ void gameLoop() {
 	char continueChoice = 'x';
 
 	do {
+		if (fow == true)
+		{
+			printFogMap();
+		}
+		else
+		{
+			printWholeMap();
+		}
+
+		int direction;
+
+		cout << "Which direction would you like to move towards?" << endl;
+		if (gameMap[playery - 1][playerx] == ' ')
+		{
+			cout << "1. North" << endl;
+		}
+		if (gameMap[playery + 1][playerx] == ' ')
+		{
+			cout << "2. South" << endl;
+		}
+		if (gameMap[playery][playerx + 1] == ' ')
+		{
+			cout << "3. East" << endl;
+		}
+		if (gameMap[playery][playerx - 1] == ' ')
+		{
+			cout << "4. West" << endl;
+		}
+
+		cin >> direction;
+		fogMap[playery][playerx] = ' ';
+
+		if (direction == 1)
+		{
+			playery -= 2;
+		}
+		else if (direction == 2)
+		{
+			playery += 2;
+		}
+		else if (direction == 3)
+		{
+			playerx += 2;
+		}
+		else
+		{
+			playerx -= 2;
+		}
+
 		//25% chance of a fight occuring each round
 		int fightChance = rand() % 4;
 
@@ -175,13 +269,15 @@ void gameLoop() {
 		}
 
 		//Checks if player is still alive
-		if (player->getHealth() > 0) {
+		if (player->getHealth() > 0) 
+		{
 
 			cout << player->getName() << " has " << player->getHealth() << " health remaining." << endl;
 
 			continueChoice = 'x';
 
-			while (continueChoice != 'y' && continueChoice != 'n') {
+			while (continueChoice != 'y' && continueChoice != 'n')
+			{
 				cout << "Would you like to continue? (y/n) ";
 				cin >> continueChoice;
 			}
@@ -380,17 +476,39 @@ int countLinesInFile(string file) {
 	return numLines;
 }
 
-void printMap()
+void printWholeMap()
 {
-	for (int i = 0; i < mapx; i++)
+	for (int i = 0; i < mapy; i++)
 	{
-		for (int j = 0; j < mapy; j++)
+		for (int j = 0; j < mapx; j++)
 		{
-			if (i == playerx && j == playery)
+			if (i == playery && j == playerx)
 			{
 				gameMap[i][j] = 'P';
 			}
 			cout << gameMap[i][j];
+		}
+		cout << endl;
+	}
+}
+
+void printFogMap()
+{
+	fogMap[playery][playerx] = 'P';
+	fogMap[playery - 1][playerx - 1] = gameMap[playery - 1][playerx - 1];
+	fogMap[playery - 1][playerx] = gameMap[playery - 1][playerx];
+	fogMap[playery - 1][playerx + 1] = gameMap[playery - 1][playerx + 1];
+	fogMap[playery][playerx - 1] = gameMap[playery][playerx - 1];
+	fogMap[playery][playerx + 1] = gameMap[playery][playerx + 1];
+	fogMap[playery + 1][playerx - 1] = gameMap[playery + 1][playerx - 1];
+	fogMap[playery + 1][playerx] = gameMap[playery + 1][playerx];
+	fogMap[playery + 1][playerx + 1] = gameMap[playery + 1][playerx + 1];
+
+	for (int i = 0; i < mapy; i++)
+	{
+		for (int j = 0; j < mapx; j++)
+		{
+			cout << fogMap[i][j];
 		}
 		cout << endl;
 	}
