@@ -16,5 +16,7 @@ void createCharacter();
 void loadGame();
 void saveGame();
 int countLinesInFile(string file);
+void generateMap();
+void printMap();
 
 #endif
